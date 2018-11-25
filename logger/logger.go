@@ -5,7 +5,7 @@ import (
 	"openhab2awsiot/config"
 )
 
-func InitLogger(config *config.Config) *logrus.Logger {
+func Init(config *config.Config) *logrus.Logger {
 	log := logrus.New()
 	if config.Debug {
 		log.SetLevel(logrus.DebugLevel)
