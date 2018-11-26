@@ -21,29 +21,45 @@ func Init() transformer.Transformer {
 	return &OpenHab2AWSIoT{}
 }
 
+type shadow struct {
+	State struct {
+		Reported struct {
+			State   interface{} `json:"state,omitempty"`
+			Command interface{} `json:"command,omitempty"`
+		} `json:"reported"`
+	} `json:"state"`
+}
+
 func (OpenHab2AWSIoT) Transform(from *transformer.Message) (*transformer.Message, error) {
 	path := strings.Split(from.Topic, "/")
-	if len(path) != 4 {
+	if len(path) != 3 {
 		return nil, TopicError.New("Invalid topic: %+v", path)
 	}
-	if path[1] != "openhab" {
+	if path[0] != "openhab" {
 		return nil, TopicError.New("Invalid first topic element: %+v", path)
 	}
-	if path[3] != "state" && path[3] != "command" {
+	if path[2] != "state" && path[2] != "command" {
 		return nil, TopicError.New("Invalid third topic element: %+v", path)
 	}
 	to := &transformer.Message{
-		Topic: fmt.Sprintf("/awsiot/%s", path[2]),
+		Topic: fmt.Sprintf("$aws/things/%s/shadow/update", path[1]),
 	}
-	payload := make(map[string]interface{})
-	payload[path[3]] = nil
+	s := shadow{}
 	num, err := strconv.ParseInt(string(from.Payload), 10, 64)
 	if err != nil {
-		payload[path[3]] = string(from.Payload)
+		if path[2] == "command" {
+			s.State.Reported.Command = string(from.Payload)
+		} else {
+			s.State.Reported.State = string(from.Payload)
+		}
 	} else {
-		payload[path[3]] = num
+		if path[2] == "command" {
+			s.State.Reported.Command = num
+		} else {
+			s.State.Reported.State = num
+		}
 	}
-	to.Payload, err = json.Marshal(payload)
+	to.Payload, err = json.Marshal(s)
 	if err != nil {
 		return nil, ConvertError.New("Marshall error: %+v", err)
 	}

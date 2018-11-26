@@ -57,10 +57,12 @@ func (mqtt *MQTTService) messageHandler(client MQTT.Client, message MQTT.Message
 	msgTo, err := mqtt.transformer.Transform(msgFrom)
 	if err != nil {
 		mqtt.log.Errorf("Transformer error: %+v", err)
+		return
 	}
 	err = mqtt.publish(msgTo.Topic, msgTo.Payload)
 	if err != nil {
 		mqtt.log.Errorf("Publish error: %+v", err)
+		return
 	}
 }
 
@@ -77,7 +79,7 @@ func Init(config *config.Config, log *logrus.Logger, transformer transformer.Tra
 	mqtt.opts = MQTT.NewClientOptions().AddBroker(fmt.Sprintf("tcp://%s", addr))
 	mqtt.timeout = config.MQTT.Timeout
 	mqtt.log = log
-	mqtt.topic = "/openhab/#"
+	mqtt.topic = "#"
 	if transformer == nil {
 		return nil, ParametersError.New("transformer is nil")
 	}
