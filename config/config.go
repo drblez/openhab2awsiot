@@ -13,7 +13,7 @@ var (
 
 type MQTT struct {
 	Host    string `long:"host" description:"MQTT host" env:"MQTT_HOST" default:"localhost"`
-	Port    string `long:"port" description:"MQTT port" env:"MQTT_HOST" default:"1883"`
+	Port    string `long:"port" description:"MQTT port" env:"MQTT_PORT" default:"1883"`
 	Timeout int    `long:"timeout" description:"MQTT timeout" env:"MQTT_TIMEOUT" default:"60"`
 }
 
